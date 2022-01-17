@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "bcrypt-nodejs": "^0.0.3",
     "express": "^4.17.2",
     "nodemon": "^2.0.15"
   },
@@ -9,7 +10,6 @@
   "name": "node",
   "version": "1.0.0",
   "main": "server.js",
-  "devDependencies": {},
   "author": "",
   "license": "ISC",
   "description": ""

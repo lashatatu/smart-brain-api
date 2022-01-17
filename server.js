@@ -1,5 +1,8 @@
 const express = require("express");
 const app = express();
+const bcrypt = require("bcrypt-nodejs");
+
+
 app.use(express.json());
 const database = {
   users: [
@@ -7,7 +10,6 @@ const database = {
       id: "123",
       name: "John",
       email: "john@gmail.com",
-      password: "cookies",
       entries: 0,
       joined: new Date(),
     },
@@ -15,7 +17,6 @@ const database = {
       id: "124",
       name: "sally",
       email: "sally@gmail.com",
-      password: "bananas",
       entries: 0,
       joined: new Date(),
     },
@@ -39,7 +40,10 @@ app.post("/signin", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  const {email,name,password}=req.body
+  const { email, name, password } = req.body;
+  bcrypt.hash(password, null,null, (err, hash) => {
+    console.log(hash);
+  });
   database.users.push({
     id: "125",
     name: name,
@@ -49,6 +53,48 @@ app.post("/register", (req, res) => {
     joined: new Date(),
   });
   res.json(database.users[database.users.length - 1]);
+});
+
+app.get("/profile/:id", (req, res) => {
+  const { id } = req.params;
+  let found = false;
+  database.users.forEach((user) => {
+    if (user.id === id) {
+      found = true;
+      return res.json(user);
+    }
+  });
+  if (!found) {
+    res.status(404).json("no user found");
+  }
+});
+
+app.post('/image',(req,res)=>{
+  const { id } = req.body;
+  let found = false;
+  database.users.forEach((user) => {
+    if (user.id === id) {
+      found = true;
+      user.entries++
+      return res.json(user.entries);
+    }
+  });
+
+  if (!found) {
+    res.status(404).json("no user found");
+  }
+})
+
+bcrypt.hash("bacon", null,null, (err, hash) => {
+  console.log(hash);
+});
+
+bcrypt.compare("bacon", hash, (err, res) => {
+  console.log(res);
+});
+
+bcrypt.compare("veggies", hash, (err, res) => {
+  console.log(res);
 });
 
 app.listen(3000, () => {
