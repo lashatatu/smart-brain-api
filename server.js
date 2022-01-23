@@ -2,21 +2,23 @@ const express = require("express");
 const app = express();
 const bcrypt = require("bcrypt-nodejs");
 const cors = require("cors");
-const knex=require("knex")
+const knex = require("knex");
 
-const db=knex({
-  client:"pg",
+const db = knex({
+  client: "pg",
   connection: {
     host: "127.0.0.1",
     user: "postgres",
     password: "heydrich",
-    database: "smart-brain"
-  }
+    database: "smart-brain",
+  },
 });
 
-db.select("*").from("users").then(data=>{
-  console.log(data);
-});
+db.select("*")
+  .from("users")
+  .then((data) => {
+    console.log(data);
+  });
 
 const database = {
   users: [
@@ -61,22 +63,34 @@ app.post("/signin", (req, res) => {
 
 app.post("/register", (req, res) => {
   const { email, name, password } = req.body;
-  db('users')
-  .returning('*')
-  .insert({
-    email: email,
-    name: name,
-    joined: new Date()
-  })
-    .then(user=>{
-      res.json(user[0])
-  })
-    .catch(err=>res.status(400).json('unable to register'))
+  db("users")
+    .returning("*")
+    .insert({
+      email: email,
+      name: name,
+      joined: new Date(),
+    })
+    .then((user) => {
+      res.json(user[0]);
+    })
+    .catch((err) => res.status(400).json("unable to register"));
 });
 
 app.get("/profile/:id", (req, res) => {
   const { id } = req.params;
   let found = false;
+  db.select("*")
+    .from("users")
+    .where({ id: id })
+    .then((user) => {
+      if (user.length) {
+        found = true;
+        res.json(user[0]);
+      } else {
+        res.status(400).json("not found");
+      }
+    })
+    .catch((err) => res.status(400).json("error getting user"));
   database.users.forEach((user) => {
     if (user.id === id) {
       found = true;
@@ -90,18 +104,12 @@ app.get("/profile/:id", (req, res) => {
 
 app.post("/image", (req, res) => {
   const { id } = req.body;
-  let found = false;
-  database.users.forEach((user) => {
-    if (user.id === id) {
-      found = true;
-      user.entries++;
-      return res.json(user.entries);
-    }
-  });
-
-  if (!found) {
-    res.status(404).json("no user found");
-  }
+  db('users').where("id", "=", id)
+    .increment("entries", 1)
+    .returning("entries")
+    .then((entries) => {
+      res.json(entries[0]);
+    }).catch(err=>res.status(400).json("unable to get entries"))
 });
 
 app.listen(3001, () => {
